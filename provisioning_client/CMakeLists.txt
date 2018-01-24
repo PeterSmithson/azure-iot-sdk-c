@@ -8,10 +8,10 @@ compileAsC99()
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DUSE_PROV_MODULE")
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DUSE_PROV_MODULE")
 
-add_subdirectory(./deps)
-
 set(provisioning_libs)
 set(provisioning_headers)
+
+add_subdirectory(./deps)
 
 set(AUTH_CLIENT_H_FILES
     ./inc/azure_prov_client/prov_auth_client.h
@@ -259,6 +259,9 @@ endif()
 
 add_subdirectory(tools)
 
+# Set CMAKE_INSTALL_LIBDIR if not defined
+include(GNUInstallDirs)
+
 if(${use_installed_dependencies})
 
     # Install Provisioning libs
@@ -279,13 +282,13 @@ if(${use_installed_dependencies})
     include(CMakePackageConfigHelpers)
 
     write_basic_package_version_file(
-        "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}/${PROJECT_NAME}ConfigVersion.cmake"
+        "${PROJECT_BINARY_DIR}/${PROJECT_NAME}/${PROJECT_NAME}ConfigVersion.cmake"
         VERSION ${PROV_SDK_VERSION}
         COMPATIBILITY SameMajorVersion
     )
 
     configure_file("configs/${PROJECT_NAME}Config.cmake"
-        "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}/${PROJECT_NAME}Config.cmake"
+        "${PROJECT_BINARY_DIR}/${PROJECT_NAME}/${PROJECT_NAME}Config.cmake"
         COPYONLY
     )
 
@@ -299,9 +302,14 @@ if(${use_installed_dependencies})
     install(
         FILES
             "configs/${PROJECT_NAME}Config.cmake"
-            "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}/${PROJECT_NAME}ConfigVersion.cmake"
+            "${PROJECT_BINARY_DIR}/${PROJECT_NAME}/${PROJECT_NAME}ConfigVersion.cmake"
         DESTINATION
             ${package_location}
     )
-
+else()
+    install(FILES ${provisioning_headers} 
+        DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/azure_prov_client)
+    install(TARGETS ${provisioning_libs} 
+        ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+        LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR})
 endif()

@@ -326,14 +326,6 @@ if(${use_mqtt})
     )
 endif()
 
-if (${use_prov_client})
-    set(iothub_client_libs
-        ${iothub_client_libs}
-        hsm_security_client
-        prov_auth_client
-    )
-endif()
-
 include_directories(${IOTHUB_CLIENT_INC_FOLDER})
 
 IF(WIN32)
@@ -363,6 +355,11 @@ add_library(iothub_client
     ${iothub_client_h_files}
 )
 target_link_libraries(iothub_client ${iothub_client_libs})
+
+if (${use_prov_client})
+    target_link_libraries(iothub_client_dll hsm_security_client prov_auth_client)
+    target_link_libraries(iothub_client hsm_security_client prov_auth_client)
+endif()
 
 linkSharedUtil(iothub_client)
 set(iothub_client_libs

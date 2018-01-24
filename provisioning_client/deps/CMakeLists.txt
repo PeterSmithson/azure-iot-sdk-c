@@ -45,9 +45,9 @@ else()
         include_directories(./RIoT/Emulator/RIoT)
         include_directories(./RIoT/Emulator/RIoT/RIoTCrypt/include)
 
-if(MSVC)
-    set_source_files_properties(./RIoT/Emulator/RIoT/RIoTCrypt/RiotKdf.c PROPERTIES COMPILE_FLAGS "/wd4100")
-endif()
+        if(MSVC)
+            set_source_files_properties(./RIoT/Emulator/RIoT/RIoTCrypt/RiotKdf.c PROPERTIES COMPILE_FLAGS "/wd4100")
+        endif()
 
         IF(WIN32)
             #windows needs this define
@@ -57,6 +57,30 @@ endif()
         ENDIF(WIN32)
 
         add_library(msr_riot ${msr_riot_c_files} ${msr_riot_h_files})
+
+        if(${use_installed_dependencies})
+
+            # Install Provisioning libs
+            set(package_location "cmake")
+
+            if(NOT DEFINED CMAKE_INSTALL_LIBDIR)
+                set(CMAKE_INSTALL_LIBDIR "lib")
+            endif()
+
+            install(TARGETS msr_riot EXPORT azure_prov_sdksTargets
+                LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+                ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+                RUNTIME DESTINATION ${CMAKE_INSTALL_LIBDIR}/../bin
+                INCLUDES DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/azureiot
+            )
+            install(FILES ${msr_riot_h_files} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/azureiot/azure_prov_client)
+        else()
+            install(FILES ${msr_riot_h_files} 
+                DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/azure_prov_client)
+            install(TARGETS msr_riot 
+                ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+                LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR})
+        endif()
     endif()
 
     if(${hsm_type_sastoken})
