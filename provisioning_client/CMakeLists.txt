@@ -287,11 +287,6 @@ if(${use_installed_dependencies})
         COMPATIBILITY SameMajorVersion
     )
 
-    configure_file("configs/${PROJECT_NAME}Config.cmake"
-        "${PROJECT_BINARY_DIR}/${PROJECT_NAME}/${PROJECT_NAME}Config.cmake"
-        COPYONLY
-    )
-
     install(EXPORT azure_prov_sdksTargets
         FILE
             "${PROJECT_NAME}Targets.cmake"
@@ -301,7 +296,6 @@ if(${use_installed_dependencies})
 
     install(
         FILES
-            "configs/${PROJECT_NAME}Config.cmake"
             "${PROJECT_BINARY_DIR}/${PROJECT_NAME}/${PROJECT_NAME}ConfigVersion.cmake"
         DESTINATION
             ${package_location}
