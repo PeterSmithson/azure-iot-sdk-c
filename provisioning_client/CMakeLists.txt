@@ -35,8 +35,6 @@ set(HSM_CLIENT_C_FILES
 if (${hsm_type_custom})
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DHSM_AUTH_TYPE_CUSTOM")
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DHSM_AUTH_TYPE_CUSTOM")
-
-    set(HSM_CLIENT_LIBRARY ${CUSTOM_HSM_LIB})
 endif()
 
 if (${hsm_type_x509})
@@ -53,8 +51,6 @@ if (${hsm_type_x509})
     include_directories(./deps/RIoT/Emulator/DICE)
     include_directories(./deps/RIoT/Emulator/RIoT)
     include_directories(./deps/RIoT/Emulator/RIoT/RIoTCrypt/include)
-
-    set(HSM_CLIENT_LIBRARY ${HSM_CLIENT_LIBRARY} msr_riot)
 endif()
 
 if (${hsm_type_sastoken})
@@ -73,12 +69,23 @@ if (${hsm_type_sastoken})
     endif()
 
     include_directories(${TPM_C_INC_FOLDER})
-
-    set(HSM_CLIENT_LIBRARY ${HSM_CLIENT_LIBRARY} utpm)
-    if (WIN32)
-        set(HSM_CLIENT_LIBRARY ${HSM_CLIENT_LIBRARY} Tbs)
-    endif()
 endif()
+
+function(link_hsm_client whatExeIsBuilding)
+    if (${hsm_type_custom})
+        target_link_libraries(${whatExeIsBuilding} ${CUSTOM_HSM_LIB})
+    else()
+        if (${hsm_type_x509})
+            target_link_libraries(${whatExeIsBuilding} msr_riot)
+        endif()
+        if (${hsm_type_sastoken})
+            target_link_libraries(${whatExeIsBuilding} utpm)
+            if (WIN32)
+                target_link_libraries(${whatExeIsBuilding} Tbs)
+            endif()
+        endif()
+    endif()
+endfunction()
 
 function(link_security_client whatExeIsBuilding)
     target_link_libraries(${whatExeIsBuilding} prov_auth_client)
@@ -133,10 +140,9 @@ ENDIF(WIN32)
 
 add_library(hsm_security_client ${HSM_CLIENT_C_FILES} ${HSM_CLIENT_H_FILES})
 linkSharedUtil(hsm_security_client)
-target_link_libraries(hsm_security_client ${HSM_CLIENT_LIBRARY})
+link_hsm_client(hsm_security_client)
 set(provisioning_libs ${provisioning_libs} hsm_security_client)
 set(provisioning_headers ${provisioning_headers} ${HSM_CLIENT_H_FILES})
-
 
 add_library(prov_auth_client ${AUTH_CLIENT_C_FILES} ${AUTH_CLIENT_H_FILES})
 linkSharedUtil(prov_auth_client)
